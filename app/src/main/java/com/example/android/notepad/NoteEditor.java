@@ -33,6 +33,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
@@ -62,7 +63,8 @@ public class NoteEditor extends Activity {
         new String[] {
             NotePad.Notes._ID,
             NotePad.Notes.COLUMN_NAME_TITLE,
-            NotePad.Notes.COLUMN_NAME_NOTE
+            NotePad.Notes.COLUMN_NAME_NOTE,
+            NotePad.Notes.COLUMN_NAME_COLOR
     };
 
     // A label for the saved state of the activity
@@ -95,7 +97,16 @@ public class NoteEditor extends Activity {
             mRect = new Rect();
             mPaint = new Paint();
             mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setColor(0x800000FF);
+            mPaint.setStrokeWidth(1.5f);
+            mPaint.setColor(context.getResources().getColor(R.color.editor_line));
+        }
+
+        /**
+         * Updates the color of the ruled lines to match the note's paper color.
+         */
+        public void setLineColor(int color) {
+            mPaint.setColor(color);
+            invalidate();
         }
 
         /**
@@ -125,7 +136,7 @@ public class NoteEditor extends Activity {
                  * at a vertical position one dip below the baseline, using the "paint" object
                  * for details.
                  */
-                canvas.drawLine(r.left, baseline + 1, r.right, baseline + 1, paint);
+                canvas.drawLine(r.left, baseline + 6, r.right, baseline + 6, paint);
             }
 
             // Finishes up by calling the parent method
@@ -292,6 +303,9 @@ public class NoteEditor extends Activity {
             String note = mCursor.getString(colNoteIndex);
             mText.setTextKeepState(note);
 
+            // Makes the editor paper match the sticky-note color chosen in the grid.
+            applyPaperColor();
+
             // Stores the original note text, to allow the user to revert changes.
             if (mOriginalContent == null) {
                 mOriginalContent = note;
@@ -304,6 +318,25 @@ public class NoteEditor extends Activity {
         } else {
             setTitle(getText(R.string.error_title));
             mText.setText(getText(R.string.error_message));
+        }
+    }
+
+    /**
+     * Applies the note's sticky-note color to the editor background, text and ruled lines.
+     */
+    private void applyPaperColor() {
+        if (mCursor == null || mText == null) {
+            return;
+        }
+
+        int colorIndex = mCursor.getInt(
+                mCursor.getColumnIndexOrThrow(NotePad.Notes.COLUMN_NAME_COLOR));
+
+        mText.setBackgroundColor(NoteColors.background(colorIndex));
+        mText.setTextColor(NoteColors.editorText(colorIndex));
+
+        if (mText instanceof LinedEditText) {
+            ((LinedEditText) mText).setLineColor(NoteColors.editorLine(colorIndex));
         }
     }
 
@@ -442,10 +475,42 @@ public class NoteEditor extends Activity {
         } else if (id == R.id.menu_delete) {
             deleteNote();
             finish();
+        } else if (id == R.id.menu_share) {
+            shareNote();
         } else if (id == R.id.menu_revert) {
             cancelNote();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Exports the current note by sharing its title and content as plain text.
+     */
+    private void shareNote() {
+        String title = "";
+        if (mCursor != null && mCursor.moveToFirst()) {
+            title = mCursor.getString(
+                    mCursor.getColumnIndexOrThrow(NotePad.Notes.COLUMN_NAME_TITLE));
+        }
+
+        String text = mText.getText().toString();
+
+        // Uses the first line of the content when the note still has the default title.
+        if (TextUtils.isEmpty(title)
+                || title.equals(getString(android.R.string.untitled))) {
+            String firstLine = text.trim();
+            int newLine = firstLine.indexOf('\n');
+            if (newLine >= 0) {
+                firstLine = firstLine.substring(0, newLine);
+            }
+            title = firstLine.length() > 30 ? firstLine.substring(0, 30) : firstLine;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_SUBJECT, title);
+        intent.putExtra(Intent.EXTRA_TEXT, title + "\n\n" + text);
+        startActivity(Intent.createChooser(intent, getString(R.string.menu_share)));
     }
 
 //BEGIN_INCLUDE(paste)
@@ -576,7 +641,8 @@ public class NoteEditor extends Activity {
                 null     // No where columns are used, so no where arguments are necessary.
             );
 
-
+        // Keeps the home-screen widget in sync with the saved note.
+        NotePadWidgetProvider.notifyNotesChanged(this);
     }
 
     /**
@@ -592,6 +658,7 @@ public class NoteEditor extends Activity {
                 ContentValues values = new ContentValues();
                 values.put(NotePad.Notes.COLUMN_NAME_NOTE, mOriginalContent);
                 getContentResolver().update(mUri, values, null, null);
+                NotePadWidgetProvider.notifyNotesChanged(this);
             } else if (mState == STATE_INSERT) {
                 // We inserted an empty note, make sure to delete it
                 deleteNote();
@@ -609,6 +676,7 @@ public class NoteEditor extends Activity {
             mCursor.close();
             mCursor = null;
             getContentResolver().delete(mUri, null, null);
+            NotePadWidgetProvider.notifyNotesChanged(this);
             mText.setText("");
         }
     }

@@ -12,4 +12,9 @@
           android:icon="@drawable/ic_menu_compose"
           android:title="@string/menu_paste"
           android:alphabeticShortcut='p' />
+    <!--  Exports all notes by sharing them as plain text. -->
+    <item android:id="@+id/menu_export_all"
+          android:icon="@android:drawable/ic_menu_save"
+          android:title="@string/menu_export_all"
+          android:showAsAction="never" />
 </menu>

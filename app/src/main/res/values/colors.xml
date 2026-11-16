@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#00695C</color>
+    <color name="primary_dark">#004D40</color>
+    <color name="primary_light">#26A69A</color>
+    <color name="accent">#FFB300</color>
+    <color name="app_bar">#E4F2EE</color>
+    <color name="header_start">#00695C</color>
+    <color name="header_end">#00897B</color>
+    <color name="app_background">#F2F7F5</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_pressed">#E8F2EF</color>
+    <color name="card_stroke">#E1EAE7</color>
+    <color name="divider">#E3ECE9</color>
+    <color name="title_text">#1B2B2B</color>
+    <color name="secondary_text">#607D8B</color>
+    <color name="preview_text">#78909C</color>
+    <color name="pin_color">#FF8F00</color>
+    <color name="accent_bar">#B2DFDB</color>
+    <color name="search_hint">#90A4AE</color>
+    <color name="editor_line">#E6DCC8</color>
+    <color name="editor_paper">#FFFDF7</color>
+    <color name="editor_text">#2B3A3A</color>
+</resources>

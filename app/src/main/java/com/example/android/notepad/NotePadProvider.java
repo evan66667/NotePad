@@ -63,7 +63,7 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
     /**
      * The database version
      */
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
 
     /**
      * A projection map used to select columns from the database
@@ -156,6 +156,16 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                 NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE,
                 NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE);
 
+        // Maps "pinned" to "pinned"
+        sNotesProjectionMap.put(
+                NotePad.Notes.COLUMN_NAME_PINNED,
+                NotePad.Notes.COLUMN_NAME_PINNED);
+
+        // Maps "color" to "color"
+        sNotesProjectionMap.put(
+                NotePad.Notes.COLUMN_NAME_COLOR,
+                NotePad.Notes.COLUMN_NAME_COLOR);
+
         /*
          * Creates an initializes a projection map for handling Live Folders
          */
@@ -196,29 +206,32 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                    + NotePad.Notes.COLUMN_NAME_TITLE + " TEXT,"
                    + NotePad.Notes.COLUMN_NAME_NOTE + " TEXT,"
                    + NotePad.Notes.COLUMN_NAME_CREATE_DATE + " INTEGER,"
-                   + NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE + " INTEGER"
+                   + NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE + " INTEGER,"
+                   + NotePad.Notes.COLUMN_NAME_PINNED + " INTEGER DEFAULT 0,"
+                   + NotePad.Notes.COLUMN_NAME_COLOR + " INTEGER DEFAULT 0"
                    + ");");
        }
 
        /**
-        *
-        * Demonstrates that the provider must consider what happens when the
-        * underlying datastore is changed. In this sample, the database is upgraded the database
-        * by destroying the existing data.
-        * A real application should upgrade the database in place.
+        * Upgrades the database in place so that existing notes are preserved. The pinned
+        * column was introduced in version 3.
         */
        @Override
        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
            // Logs that the database is being upgraded
            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
-                   + newVersion + ", which will destroy all old data");
+                   + newVersion);
 
-           // Kills the table and existing data
-           db.execSQL("DROP TABLE IF EXISTS notes");
+           if (oldVersion < 3) {
+               db.execSQL("ALTER TABLE " + NotePad.Notes.TABLE_NAME + " ADD COLUMN "
+                       + NotePad.Notes.COLUMN_NAME_PINNED + " INTEGER DEFAULT 0");
+           }
 
-           // Recreates the database with a new version
-           onCreate(db);
+           if (oldVersion < 4) {
+               db.execSQL("ALTER TABLE " + NotePad.Notes.TABLE_NAME + " ADD COLUMN "
+                       + NotePad.Notes.COLUMN_NAME_COLOR + " INTEGER DEFAULT 0");
+           }
        }
    }
 
@@ -538,6 +551,16 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
         // If the values map doesn't contain note text, sets the value to an empty string.
         if (values.containsKey(NotePad.Notes.COLUMN_NAME_NOTE) == false) {
             values.put(NotePad.Notes.COLUMN_NAME_NOTE, "");
+        }
+
+        // New notes are not pinned by default.
+        if (values.containsKey(NotePad.Notes.COLUMN_NAME_PINNED) == false) {
+            values.put(NotePad.Notes.COLUMN_NAME_PINNED, 0);
+        }
+
+        // New notes use the default sticky-note color (lemon yellow).
+        if (values.containsKey(NotePad.Notes.COLUMN_NAME_COLOR) == false) {
+            values.put(NotePad.Notes.COLUMN_NAME_COLOR, 0);
         }
 
         // Opens the database object in "write" mode.

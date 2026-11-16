@@ -119,9 +119,10 @@ public final class NotePad {
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.note";
 
         /**
-         * The default sort order for this table
+         * The default sort order for this table: pinned notes first, then most recently
+         * modified ones.
          */
-        public static final String DEFAULT_SORT_ORDER = "modified DESC";
+        public static final String DEFAULT_SORT_ORDER = "pinned DESC, modified DESC";
 
         /*
          * Column definitions
@@ -150,5 +151,17 @@ public final class NotePad {
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
         public static final String COLUMN_NAME_MODIFICATION_DATE = "modified";
+
+        /**
+         * Column name for the pinned (favorite) flag
+         * <P>Type: INTEGER (0 = normal, 1 = pinned to the top)</P>
+         */
+        public static final String COLUMN_NAME_PINNED = "pinned";
+
+        /**
+         * Column name for the sticky-note color index
+         * <P>Type: INTEGER (index into the NoteColors palette)</P>
+         */
+        public static final String COLUMN_NAME_COLOR = "color";
     }
 }
