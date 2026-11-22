@@ -36,27 +36,31 @@
             android:contentDescription="@string/menu_add" />
     </LinearLayout>
 
-    <GridView
-        android:id="@+id/widget_notes_grid"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:numColumns="2"
-        android:horizontalSpacing="8dp"
-        android:verticalSpacing="8dp"
-        android:stretchMode="columnWidth"
-        android:padding="4dp"
-        android:cacheColorHint="@android:color/transparent" />
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/widget_empty"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:padding="16dp"
-        android:text="@string/widget_empty"
-        android:textColor="@color/secondary_text"
-        android:textSize="12sp" />
+        <GridView
+            android:id="@+id/widget_notes_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:numColumns="2"
+            android:horizontalSpacing="8dp"
+            android:verticalSpacing="8dp"
+            android:stretchMode="columnWidth"
+            android:padding="4dp"
+            android:cacheColorHint="@android:color/transparent" />
+
+        <TextView
+            android:id="@+id/widget_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="@string/widget_empty"
+            android:textColor="@color/secondary_text"
+            android:textSize="12sp" />
+
+    </FrameLayout>
 
 </LinearLayout>
